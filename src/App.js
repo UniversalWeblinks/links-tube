@@ -1,25 +1,96 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import { Container } from "react-bootstrap";
 
-function App() {
+import Header from "./components/header/Header";
+import Sidebar from "./components/sidebar/Sidebar";
+import HomePage from "./pages/homePage/HomePage";
+import LoginPage from "./pages/loginPage/LoginPage";
+
+import { Route, Routes, useNavigate } from "react-router-dom";
+
+import "./_app.scss";
+import { useSelector } from "react-redux";
+import WatchPage from "./pages/watchPage/WatchPage";
+import SearchPage from "./pages/searchPage/SearchPage";
+import SubscriptionsPage from "./pages/subscriptionsPage/SubscriptionPage";
+import ChannelPage from "./pages/channelPage/ChannelPage";
+
+const Layout = ({ children }) => {
+  const [sidebar, toggleSidebar] = useState(false);
+
+  const handleToggleSidebar = () => toggleSidebar((value) => !value);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Header handleToggleSidebar={handleToggleSidebar} />
+      <div className="app__container">
+        <Sidebar sidebar={sidebar} handleToggleSidebar={handleToggleSidebar} />
+        <Container fluid className="app__main ">
+          {children}
+        </Container>
+      </div>
+    </>
   );
-}
+};
+
+const App = () => {
+  const { accessToken, loading } = useSelector((state) => state.auth);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !accessToken) {
+      navigate("/auth");
+    }
+  }, [accessToken, loading, navigate]);
+
+  return (
+    <Routes>
+      <Route path="/"
+        element={
+          <Layout>
+            <HomePage />
+          </Layout>
+        }
+      />
+      <Route path="/auth" element={<LoginPage />} />
+      <Route path="/search/:query"
+        element={
+          <Layout>
+            <SearchPage />
+          </Layout>
+        }
+      />
+      <Route path="/watch/:id"
+        element={
+          <Layout>
+            <WatchPage />
+          </Layout>
+        }
+      />
+      <Route path="/feed/subscriptions"
+        element={
+          <Layout>
+            <SubscriptionsPage />
+          </Layout>
+        }
+      />
+      <Route path="/channel/:channelId"
+        element={
+          <Layout>
+            <ChannelPage />
+          </Layout>
+        }
+      />
+      <Route path="*"
+        element={
+          <Layout>
+            <HomePage />
+          </Layout>
+        }
+      />
+    </Routes>
+  );
+};
 
 export default App;
